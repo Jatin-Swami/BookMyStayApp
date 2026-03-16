@@ -1,11 +1,33 @@
 import java.util.*;
 
+class RoomSearchService {
+    public void searchAvailableRooms(RoomInventory inventory, Room singleRoom, Room doubleRoom, Room suiteRoom) {
+        Map<String, Integer> availability = inventory.getRoomAvailability();
+        if(availability.get("Single") > 0) {
+            System.out.println("Single Room: ");
+            singleRoom.displayRoomDetails();
+            System.out.println("Available Rooms: " + availability.get("Single") + "\n");
+        }
+        if(availability.get("Double") > 0) {
+            System.out.println("Double Room: ");
+            doubleRoom.displayRoomDetails();
+            System.out.println("Available Rooms: " + availability.get("Double") + "\n");
+        }
+        if(availability.get("Suite") > 0) {
+            System.out.println("Suite Room: ");
+            suiteRoom.displayRoomDetails();
+            System.out.println("Available Rooms: " + availability.get("Suite") + "\n");
+        }
+    }
+}
+
+
 class RoomInventory {
     private Map<String, Integer> roomAvailability =  new HashMap<>();
     public RoomInventory() {
-        roomAvailability.put("Single Room", 0);
-        roomAvailability.put("Double Room", 0);
-        roomAvailability.put("Suite Room", 0);
+        roomAvailability.put("Single", 0);
+        roomAvailability.put("Double", 0);
+        roomAvailability.put("Suite", 0);
     }
     public void initializeInventory(String roomType, int available) {
         roomAvailability.put(roomType, available);
@@ -64,18 +86,10 @@ public class BookMyStayApp {
         Room doubleRoom = new DoubleRoom();
         Room suiteRoom = new SuiteRoom();
         RoomInventory roomInventory = new RoomInventory();
-        roomInventory.initializeInventory("Single Room", 5);
-        roomInventory.initializeInventory("Double Room", 3);
-        roomInventory.initializeInventory("Suite Room", 2);
-        HashMap<String, Integer> rooms = new HashMap<>(roomInventory.getRoomAvailability());
-        System.out.println("Single Room: ");
-        singleRoom.displayRoomDetails();
-        System.out.println("Available Rooms: " + rooms.get("Single Room") + "\n");
-        System.out.println("Double Room: ");
-        doubleRoom.displayRoomDetails();
-        System.out.println("Available Rooms: " +  rooms.get("Double Room") + "\n");
-        System.out.println("Suite Room: ");
-        suiteRoom.displayRoomDetails();
-        System.out.println("Available Rooms: " +  rooms.get("Suite Room") + "\n");
+        roomInventory.initializeInventory("Single", 5);
+        roomInventory.initializeInventory("Double", 3);
+        roomInventory.initializeInventory("Suite", 2);
+        RoomSearchService roomSearchService = new RoomSearchService();
+        roomSearchService.searchAvailableRooms(roomInventory, singleRoom, doubleRoom, suiteRoom);
     }
 }
