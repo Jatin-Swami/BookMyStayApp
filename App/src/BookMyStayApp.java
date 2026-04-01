@@ -1,4 +1,41 @@
+import java.awt.print.Book;
 import java.util.*;
+class Service {
+    private String serviceName;
+    private double cost;
+    public Service(String serviceName, double cost) {
+        this.serviceName = serviceName;
+        this.cost = cost;
+    }
+    public String getServiceName(){
+        return serviceName;
+    }
+    public double getCost(){
+        return cost;
+    }
+}
+class AddOnServiceManager {
+    private Map<String, List<Service>> serviceByReservation;
+    public AddOnServiceManager() {
+        serviceByReservation = new HashMap<>();
+    }
+    public void addService(String reservationId, Service service) {
+        if (serviceByReservation.containsKey(reservationId)) {
+            serviceByReservation.get(reservationId).add(service);
+        }
+        else {
+            serviceByReservation.put(reservationId, new ArrayList<>());
+            serviceByReservation.get(reservationId).add(service);
+        }
+    }
+    public double calculateTotalServiceCost(String reservationId) {
+        double cost = 0;
+        for(Service serviceName : serviceByReservation.get(reservationId)) {
+            cost += serviceName.getCost();
+        }
+        return cost;
+    }
+}
 class RoomAllocationService {
     private Set<String> allocatedRoomIds;
     private Map<String, Set<String>> assignedRoomsByType;
@@ -47,8 +84,6 @@ class Reservation {
         return roomType;
     }
 }
-
-
 class BookingRequestQueue {
     private Queue<Reservation> requestQueue;
     public BookingRequestQueue() { requestQueue = new LinkedList<>(); }
@@ -62,8 +97,6 @@ class BookingRequestQueue {
         return !requestQueue.isEmpty();
     }
 }
-
-
 class RoomSearchService {
     public void searchAvailableRooms(RoomInventory inventory, Room singleRoom, Room doubleRoom, Room suiteRoom) {
         Map<String, Integer> availability = inventory.getRoomAvailability();
@@ -84,8 +117,6 @@ class RoomSearchService {
         }
     }
 }
-
-
 class RoomInventory {
     private Map<String, Integer> roomAvailability =  new HashMap<>();
     public RoomInventory() {
@@ -103,8 +134,6 @@ class RoomInventory {
         this.roomAvailability = roomAvailability;
     }
 }
-
-
 abstract class Room {
     protected int numberOfBeds;
     protected int squareFeet;
@@ -120,29 +149,21 @@ abstract class Room {
         System.out.println("Price per night: " + pricePerNight);
     }
 }
-
-
 class SingleRoom extends Room {
     public SingleRoom() {
         super(1, 250, 1500.00);
     }
 }
-
-
 class DoubleRoom extends Room {
     public DoubleRoom() {
         super(2, 400, 2500.00);
     }
 }
-
-
 class SuiteRoom extends Room {
     public SuiteRoom() {
         super(3, 750, 5000.00);
     }
 }
-
-
 public class BookMyStayApp {
     public static void main(String[] args) {
         RoomInventory inventory = new RoomInventory();
@@ -168,5 +189,11 @@ public class BookMyStayApp {
             Reservation currentRequest = bookingQueue.getNextRequest();
             allocationService.allocateRoom(currentRequest, inventory);
         }
+
+        System.out.println("\nAdd-On Service Selection\nReservation ID: Single-1");
+        Service service = new Service("Breakfast", 1500);
+        AddOnServiceManager services = new AddOnServiceManager();
+        services.addService("Single-1", service);
+        System.out.println("Total Add-On Cost: " + services.calculateTotalServiceCost("Single-1"));
     }
 }
