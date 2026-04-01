@@ -1,5 +1,20 @@
 import java.awt.print.Book;
 import java.util.*;
+class BookingHistory{
+    private static List<Reservation> confirmedReservations =  new ArrayList<>();
+    public static void addReservation(Reservation reservation){
+        confirmedReservations.add(reservation);
+    }
+    public static List<Reservation> getConfirmedReservations(){ return confirmedReservations; }
+}
+class BookingReportService{
+    public void generateReport(){
+        System.out.println("Booking History Report");
+        for(Reservation reservation : BookingHistory.getConfirmedReservations()){
+            System.out.println("Guest: " + reservation.getGuestName() + ", Room Type: " + reservation.getRoomType());
+        }
+    }
+}
 class Service {
     private String serviceName;
     private double cost;
@@ -53,6 +68,7 @@ class RoomAllocationService {
             availability.put(roomType, availability.get(roomType) - 1);
             inventory.updateRoomAvailability(availability);
             System.out.println("Booking confirmed for Guest: " + reservation.getGuestName() + ", Room ID: " + roomId);
+            BookingHistory.addReservation(reservation);
         } else {
             System.out.println("Booking failed for Guest: " + reservation.getGuestName() + " - No " + roomType + " rooms available.");
         }
@@ -174,7 +190,7 @@ public class BookMyStayApp {
         BookingRequestQueue bookingQueue = new BookingRequestQueue();
 
         Reservation r1 = new Reservation("Abhi", "Single");
-        Reservation r2 = new Reservation("Subha", "Single");
+        Reservation r2 = new Reservation("Subha", "Double");
         Reservation r3 = new Reservation("Vanmathi", "Suite");
 
         bookingQueue.addRequest(r1);
@@ -182,7 +198,6 @@ public class BookMyStayApp {
         bookingQueue.addRequest(r3);
 
         RoomAllocationService allocationService = new RoomAllocationService();
-
         System.out.println("Room Allocation Processing");
 
         while(bookingQueue.hasPendingRequests()) {
@@ -190,10 +205,8 @@ public class BookMyStayApp {
             allocationService.allocateRoom(currentRequest, inventory);
         }
 
-        System.out.println("\nAdd-On Service Selection\nReservation ID: Single-1");
-        Service service = new Service("Breakfast", 1500);
-        AddOnServiceManager services = new AddOnServiceManager();
-        services.addService("Single-1", service);
-        System.out.println("Total Add-On Cost: " + services.calculateTotalServiceCost("Single-1"));
+        BookingReportService reportService = new BookingReportService();
+        System.out.println("\n");
+        reportService.generateReport();
     }
 }
