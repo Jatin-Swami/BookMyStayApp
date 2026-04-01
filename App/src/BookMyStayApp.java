@@ -180,33 +180,37 @@ class SuiteRoom extends Room {
         super(3, 750, 5000.00);
     }
 }
+class InvalidBookingException extends Exception {
+    public InvalidBookingException(String message) { super(message); }
+}
+class ReservationValidator{
+    public void validate(String guestName, String roomType, RoomInventory inventory) throws InvalidBookingException {
+        if(!(roomType.equals("Single") || roomType.equals("Double") || roomType.equals("Suite"))) {
+            throw new InvalidBookingException("Invalid room type selected");
+        }
+        if(inventory.getRoomAvailability().get(roomType) < 1) {
+            throw new InvalidBookingException("Room unavailable");
+        }
+    }
+}
 public class BookMyStayApp {
     public static void main(String[] args) {
+        System.out.println("Booking Validation");
+        Scanner sc = new Scanner(System.in);
         RoomInventory inventory = new RoomInventory();
-        inventory.initializeInventory("Single", 5);
-        inventory.initializeInventory("Double", 5);
-        inventory.initializeInventory("Suite", 5);
-
-        BookingRequestQueue bookingQueue = new BookingRequestQueue();
-
-        Reservation r1 = new Reservation("Abhi", "Single");
-        Reservation r2 = new Reservation("Subha", "Double");
-        Reservation r3 = new Reservation("Vanmathi", "Suite");
-
-        bookingQueue.addRequest(r1);
-        bookingQueue.addRequest(r2);
-        bookingQueue.addRequest(r3);
-
-        RoomAllocationService allocationService = new RoomAllocationService();
-        System.out.println("Room Allocation Processing");
-
-        while(bookingQueue.hasPendingRequests()) {
-            Reservation currentRequest = bookingQueue.getNextRequest();
-            allocationService.allocateRoom(currentRequest, inventory);
+        inventory.initializeInventory("Single", 1);
+        inventory.initializeInventory("Double", 0);
+        inventory.initializeInventory("Suite", 1);
+        ReservationValidator validator = new ReservationValidator();
+        BookingRequestQueue requestQueue = new BookingRequestQueue();
+        try {
+            System.out.print("Enter guest name: ");
+            String  guestName = sc.nextLine();
+            System.out.print("Enter room type (Single/Double/Suite): ");
+            String roomType = sc.nextLine();
+            validator.validate(guestName, roomType, inventory);
+        } catch (InvalidBookingException e) {
+            System.out.println(e.getMessage());
         }
-
-        BookingReportService reportService = new BookingReportService();
-        System.out.println("\n");
-        reportService.generateReport();
     }
 }
