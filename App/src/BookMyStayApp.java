@@ -1,3 +1,4 @@
+import java.io.*;
 import java.util.*;
 
 class BookingHistory {
@@ -290,7 +291,76 @@ class ConcurrentBookingProcessor implements Runnable {
     }
 }
 
-public class BookMyStayApp {
+class FilePersistenceService {
+
+    public void saveInventory(RoomInventory inventory, String filePath) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
+            Map<String, Integer> availability = inventory.getRoomAvailability();
+            for (Map.Entry<String, Integer> entry : availability.entrySet()) {
+                writer.write(entry.getKey() + "=" + entry.getValue());
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            System.err.println("Could not save inventory: " + e.getMessage());
+        }
+    }
+
+    public void loadInventory(RoomInventory inventory, String filePath) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+            Map<String, Integer> restoredAvailability = new HashMap<>();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split("=");
+                if (parts.length == 2) {
+                    String roomType = parts[0].trim();
+                    int count = Integer.parseInt(parts[1].trim());
+                    restoredAvailability.put(roomType, count);
+                }
+            }
+            inventory.updateRoomAvailability(restoredAvailability);
+        } catch (IOException | NumberFormatException e) {
+            System.err.println("Could not load inventory: " + e.getMessage());
+        }
+    }
+}
+
+class UseCase12DataPersistenceRecovery {
+
+    public static void main(String[] args) {
+        RoomInventory inventory = new RoomInventory();
+        FilePersistenceService persistenceService = new FilePersistenceService();
+        String stateFile = "inventory_state.txt";
+
+        System.out.println("System Recovery");
+
+        File file = new File(stateFile);
+
+        if (file.exists()) {
+            persistenceService.loadInventory(inventory, stateFile);
+            System.out.println("Valid inventory data found. Resuming.\n");
+            System.out.println("Current Inventory:");
+            System.out.println("Single: " + inventory.getRoomAvailability().get("Single"));
+            System.out.println("Double: " + inventory.getRoomAvailability().get("Double"));
+            System.out.println("Suite: " + inventory.getRoomAvailability().get("Suite"));
+        } else {
+            System.out.println("No valid inventory data found. Starting fresh.\n");
+
+            inventory.initializeInventory("Single", 5);
+            inventory.initializeInventory("Double", 3);
+            inventory.initializeInventory("Suite", 2);
+
+            System.out.println("Current Inventory:");
+            System.out.println("Single: " + inventory.getRoomAvailability().get("Single"));
+            System.out.println("Double: " + inventory.getRoomAvailability().get("Double"));
+            System.out.println("Suite: " + inventory.getRoomAvailability().get("Suite"));
+
+            persistenceService.saveInventory(inventory, stateFile);
+            System.out.println("Inventory saved successfully.");
+        }
+    }
+}
+
+class BookMyStayApp {
     public static void main(String[] args) {
         System.out.println("Concurrent Booking Simulation");
 
